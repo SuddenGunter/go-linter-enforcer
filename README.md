@@ -24,6 +24,8 @@ Create config file (democonfig.json in this example):
 Set your env variables:
 ```env
 CONFIG_FILE=democonfig.json
+DEMO_PASSWORD=password
+DEMO_USERNAME=user
 ```
 Build & run:
 ```cgo
