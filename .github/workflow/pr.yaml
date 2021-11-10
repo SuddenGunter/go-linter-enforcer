@@ -1,0 +1,35 @@
+name: PR
+
+on:
+  pull_request:
+
+jobs:
+  runner-job:
+    name: Build & Test
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.17
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: go build -v .
+
+      - name: Test
+        run: |
+          go test -v ./...
+  golangci:
+    name: Lint
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.43
