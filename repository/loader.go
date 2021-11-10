@@ -12,7 +12,6 @@ func PushDemoBranch(auth transport.AuthMethod, repo Repository) error {
 		URL:  repo.URL,
 		Auth: auth,
 	})
-
 	if err != nil {
 		return err
 	}
