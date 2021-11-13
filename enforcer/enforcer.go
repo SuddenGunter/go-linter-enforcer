@@ -18,7 +18,7 @@ type Enforcer struct {
 	auth transport.AuthMethod
 }
 
-func (e *Enforcer) EnforceRules(repo repository.Repository) error {\
+func (e *Enforcer) EnforceRules(repo repository.Repository) error {
 	// get repo
 	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		URL:  repo.URL,
@@ -47,7 +47,6 @@ func (e *Enforcer) EnforceRules(repo repository.Repository) error {\
 	return r.Push(&git.PushOptions{
 		Auth: e.auth,
 	})
-
 }
 
 func (e *Enforcer) getNewRefName() plumbing.ReferenceName {

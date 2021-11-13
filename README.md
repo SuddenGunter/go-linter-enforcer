@@ -8,7 +8,7 @@ docker-compose up -d
 ```
 Create some default user and repo.
 
-Create config file (democonfig.json in this example):
+Create repositories list file (repos.json in this example):
 ```json
 {
   "repositories": [
@@ -23,9 +23,8 @@ Create config file (democonfig.json in this example):
 
 Set your env variables:
 ```env
-CONFIG_FILE=democonfig.json
-DEMO_PASSWORD=password
-DEMO_USERNAME=user
+GIT_PASSWORD=password
+GIT_USERNAME=user
 ```
 Build & run:
 ```cgo

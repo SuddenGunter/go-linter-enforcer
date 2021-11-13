@@ -2,11 +2,9 @@ package main
 
 import (
 	"github.com/SuddenGunter/go-linter-enforcer/config"
-	"github.com/go-git/go-git/v5/plumbing/transport/http"
-
-	"github.com/SuddenGunter/go-linter-enforcer/repository"
-
 	"github.com/SuddenGunter/go-linter-enforcer/logger"
+	"github.com/SuddenGunter/go-linter-enforcer/repository"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 )
 
 func main() {
@@ -19,11 +17,10 @@ func main() {
 	}
 
 	for _, r := range repos {
-		err := repository.PushDemoBranch(&http.BasicAuth{
+		if err := repository.PushDemoBranch(&http.BasicAuth{
 			Username: cfg.Git.Username,
 			Password: cfg.Git.Password,
-		}, r)
-		if err != nil {
+		}, r); err != nil {
 			log.With("error", err).Fatal("failed to push demo branch")
 		}
 	}
