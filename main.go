@@ -1,8 +1,7 @@
 package main
 
 import (
-	"os"
-
+	"github.com/SuddenGunter/go-linter-enforcer/config"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
@@ -12,31 +11,17 @@ import (
 
 func main() {
 	log := logger.Create()
+	cfg := config.FromEnv(log)
 
-	cfgFile := os.Getenv("CONFIG_FILE")
-	if cfgFile == "" {
-		log.Fatal("CONFIG_FILE environment variable is required")
-	}
-
-	demoPass := os.Getenv("DEMO_PASSWORD")
-	if demoPass == "" {
-		log.Fatal("DEMO_PASSWORD environment variable is required")
-	}
-
-	demoUser := os.Getenv("DEMO_USERNAME")
-	if demoUser == "" {
-		log.Fatal("DEMO_USERNAME environment variable is required")
-	}
-
-	cfg, err := repository.ConfigFromJSON(cfgFile)
+	repos, err := repository.LoadListFromJSON(cfg.RepositoriesFile)
 	if err != nil {
 		log.With("error", err).Fatal("unable to parse config file")
 	}
 
-	for _, r := range cfg.Repositories {
+	for _, r := range repos {
 		err := repository.PushDemoBranch(&http.BasicAuth{
-			Username: demoUser,
-			Password: demoPass,
+			Username: cfg.Git.Username,
+			Password: cfg.Git.Password,
 		}, r)
 		if err != nil {
 			log.With("error", err).Fatal("failed to push demo branch")

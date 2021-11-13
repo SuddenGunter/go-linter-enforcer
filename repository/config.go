@@ -5,11 +5,11 @@ import (
 	"os"
 )
 
-type Config struct {
+type config struct {
 	Repositories []Repository `json:"repositories"`
 }
 
-func ConfigFromJSON(cfgFileName string) (*Config, error) {
+func LoadListFromJSON(cfgFileName string) ([]Repository, error) {
 	f, err := os.Open(cfgFileName)
 	if err != nil {
 		return nil, err
@@ -17,11 +17,11 @@ func ConfigFromJSON(cfgFileName string) (*Config, error) {
 
 	dec := json.NewDecoder(f)
 
-	var cfg Config
+	var cfg config
 
 	if err = dec.Decode(&cfg); err != nil {
 		return nil, err
 	}
 
-	return &cfg, nil
+	return cfg.Repositories, nil
 }
