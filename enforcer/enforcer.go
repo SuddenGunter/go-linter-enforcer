@@ -15,14 +15,14 @@ import (
 const branchNameTemplate = "lintenforcer/2006-01-02-%v"
 
 type Enforcer struct {
-	auth transport.AuthMethod
+	GitAuth transport.AuthMethod
 }
 
 func (e *Enforcer) EnforceRules(repo repository.Repository) error {
 	// get repo
 	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		URL:  repo.URL,
-		Auth: e.auth,
+		Auth: e.GitAuth,
 	})
 	if err != nil {
 		return err
@@ -45,7 +45,7 @@ func (e *Enforcer) EnforceRules(repo repository.Repository) error {
 
 	// push new branch
 	return r.Push(&git.PushOptions{
-		Auth: e.auth,
+		Auth: e.GitAuth,
 	})
 }
 

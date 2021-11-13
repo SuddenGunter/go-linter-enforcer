@@ -1,9 +1,8 @@
 package config
 
 import (
-	"go.uber.org/zap"
-
 	"github.com/cristalhq/aconfig"
+	"go.uber.org/zap"
 )
 
 type GitConfig struct {
