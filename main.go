@@ -21,13 +21,13 @@ func main() {
 		log.With("error", err).Fatal("unable to parse config file")
 	}
 
-	enf := enforcer.Enforcer{
-		ExpectedFile: readAll(cfg.ExpectedLinterConfig, log),
-		GitAuth: &http.BasicAuth{
+	enf := enforcer.NewEnforcer(
+		&http.BasicAuth{
 			Username: cfg.Git.Username,
 			Password: cfg.Git.Password,
 		},
-	}
+		log,
+		readAll(cfg.ExpectedLinterConfig, log))
 
 	for _, r := range repos {
 		enf.EnforceRules(r)
