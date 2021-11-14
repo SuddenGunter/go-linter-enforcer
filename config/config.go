@@ -8,6 +8,7 @@ import (
 type GitConfig struct {
 	Username string `env:"USERNAME"`
 	Password string `env:"PASSWORD"`
+	Email    string `env:"EMAIL"`
 }
 
 type Config struct {
