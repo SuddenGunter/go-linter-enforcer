@@ -24,9 +24,13 @@ const (
 )
 
 type Enforcer struct {
-	GitAuth      transport.AuthMethod
+	gitAuth      transport.AuthMethod
 	log          *zap.SugaredLogger
-	ExpectedFile []byte
+	expectedFile []byte
+}
+
+func NewEnforcer(gitAuth transport.AuthMethod, log *zap.SugaredLogger, expectedFile []byte) *Enforcer {
+	return &Enforcer{gitAuth: gitAuth, log: log, expectedFile: expectedFile}
 }
 
 func (e *Enforcer) EnforceRules(r repository.Repository) {
@@ -55,7 +59,7 @@ func (e *Enforcer) EnforceRules(r repository.Repository) {
 
 	// push new branch
 	if err := repo.Push(&git.PushOptions{
-		Auth: e.GitAuth,
+		Auth: e.gitAuth,
 	}); err != nil {
 		repoLog.Errorw("errors when trying to push changes", "err", err)
 		return
@@ -65,7 +69,7 @@ func (e *Enforcer) EnforceRules(r repository.Repository) {
 func (e *Enforcer) getRepo(repo repository.Repository) (*git.Repository, error) {
 	r, err := git.Clone(memory.NewStorage(), memfs.New(), &git.CloneOptions{
 		URL:  repo.URL,
-		Auth: e.GitAuth,
+		Auth: e.gitAuth,
 	})
 	if err != nil {
 		return nil, err
@@ -110,12 +114,12 @@ func (e *Enforcer) checkIfFileIsTheSame(repo *git.Repository) error {
 		return err
 	}
 
-	if len(existingFile) != len(e.ExpectedFile) {
+	if len(existingFile) != len(e.expectedFile) {
 		return errors.New("existing file length doesn't match expected")
 	}
 
 	for i, b := range existingFile {
-		if b != e.ExpectedFile[i] {
+		if b != e.expectedFile[i] {
 			return errors.New("existing file doesn't match expected")
 		}
 	}
@@ -140,7 +144,7 @@ func (e *Enforcer) tryReplaceFile(repo *git.Repository) error {
 
 	defer file.Close()
 
-	_, err = file.Write(e.ExpectedFile)
+	_, err = file.Write(e.expectedFile)
 	if err != nil {
 		return err
 	}
