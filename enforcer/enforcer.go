@@ -39,6 +39,7 @@ func (e *Enforcer) EnforceRules(r repository.Repository) {
 
 	if err := e.checkIfFileIsTheSame(repo); err == nil {
 		repoLog.Debugw("existing file matches expected file", "err", err)
+		return
 	}
 
 	repoLog.Errorw("errors when comparing file with existing", "err", err)
