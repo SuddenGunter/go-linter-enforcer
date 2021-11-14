@@ -30,9 +30,7 @@ func main() {
 	}
 
 	for _, r := range repos {
-		if err := enf.EnforceRules(r); err != nil {
-			log.With("error", err).Fatal("failed to push demo branch")
-		}
+		enf.EnforceRules(r)
 	}
 }
 
