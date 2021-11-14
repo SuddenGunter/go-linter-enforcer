@@ -25,6 +25,7 @@ Set your env variables:
 ```env
 GIT_PASSWORD=password
 GIT_USERNAME=user
+GIT_EMAIL=email@example.com
 ```
 Build & run:
 ```cgo
