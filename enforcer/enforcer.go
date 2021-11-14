@@ -1,8 +1,14 @@
 package enforcer
 
 import (
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"time"
+
+	"go.uber.org/zap"
+
+	"github.com/go-git/go-billy/v5/memfs"
 
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
 	"github.com/beinan/fastid"
@@ -12,41 +18,70 @@ import (
 	"github.com/go-git/go-git/v5/storage/memory"
 )
 
-const branchNameTemplate = "lintenforcer/2006-01-02-%v"
+const (
+	branchNameTemplate = "lintenforcer/2006-01-02-%v"
+	linterFileName     = ".golangci.yaml"
+)
 
 type Enforcer struct {
-	GitAuth transport.AuthMethod
+	GitAuth      transport.AuthMethod
+	log          *zap.SugaredLogger
+	ExpectedFile []byte
 }
 
-func (e *Enforcer) EnforceRules(repo repository.Repository) error {
+func (e *Enforcer) EnforceRules(r repository.Repository) {
+	repoLog := e.log.With("repo", r.Name)
 	// get repo
-	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
+	repo, err := e.getRepo(r)
+	if err != nil {
+		repoLog.Errorw("errors when opening repository", "err", err)
+	}
+
+	if err := e.checkIfFileIsTheSame(repo); err == nil {
+		repoLog.Debugw("existing file matches expected file", "err", err)
+	}
+
+	repoLog.Errorw("errors when comparing file with existing", "err", err)
+
+	if err := e.tryReplaceFile(repo); err != nil {
+		repoLog.Debugw("existing file matches expected file", "err", err)
+	}
+
+	if err := e.tryCommitChanges(repo); err != nil {
+		repoLog.Errorw("errors when trying to commit", "err", err)
+		return
+	}
+
+	// push new branch
+	if err := repo.Push(&git.PushOptions{
+		Auth: e.GitAuth,
+	}); err != nil {
+		repoLog.Errorw("errors when trying to push changes", "err", err)
+		return
+	}
+}
+
+func (e *Enforcer) getRepo(repo repository.Repository) (*git.Repository, error) {
+	r, err := git.Clone(memory.NewStorage(), memfs.New(), &git.CloneOptions{
 		URL:  repo.URL,
 		Auth: e.GitAuth,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	head, err := r.Head()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	// create new branch
+	// create new branch to work on
 	ref := plumbing.NewHashReference(e.getNewRefName(), head.Hash())
-
-	err = r.Storer.SetReference(ref)
-	if err != nil {
-		return err
+	if err = r.Storer.SetReference(ref); err != nil {
+		return nil, err
 	}
 
-	// todo: compare existing linter config with expected HERE
-
-	// push new branch
-	return r.Push(&git.PushOptions{
-		Auth: e.GitAuth,
-	})
+	return r, nil
 }
 
 func (e *Enforcer) getNewRefName() plumbing.ReferenceName {
@@ -54,4 +89,78 @@ func (e *Enforcer) getNewRefName() plumbing.ReferenceName {
 	branchName := time.Now().UTC().Format(branchFormatWithoutTime)
 
 	return plumbing.NewBranchReferenceName(branchName)
+}
+
+func (e *Enforcer) checkIfFileIsTheSame(repo *git.Repository) error {
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+
+	file, err := worktree.Filesystem.Open(linterFileName)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	existingFile, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	if len(existingFile) != len(e.ExpectedFile) {
+		return errors.New("existing file length doesn't match expected")
+	}
+
+	for i, b := range existingFile {
+		if b != e.ExpectedFile[i] {
+			return errors.New("existing file doesn't match expected")
+		}
+	}
+
+	return nil
+}
+
+func (e *Enforcer) tryReplaceFile(repo *git.Repository) error {
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+
+	if err = worktree.Filesystem.Remove(linterFileName); err != nil {
+		return err
+	}
+
+	file, err := worktree.Filesystem.Open(linterFileName)
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	_, err = file.Write(e.ExpectedFile)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (e *Enforcer) tryCommitChanges(repo *git.Repository) error {
+	worktree, err := repo.Worktree()
+	if err != nil {
+		return err
+	}
+
+	status, err := worktree.Status()
+	if err != nil {
+		return err
+	}
+
+	if status.IsClean() {
+		return errors.New("nothing to commit")
+	}
+
+	return nil
 }
