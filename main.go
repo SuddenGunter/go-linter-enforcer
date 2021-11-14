@@ -18,7 +18,7 @@ func main() {
 
 	repos, err := repository.LoadListFromJSON(cfg.RepositoriesFile)
 	if err != nil {
-		log.With("error", err).Fatal("unable to parse config file")
+		log.With("error", err).Fatal("unable to parse repositories list file")
 	}
 
 	enf := enforcer.NewEnforcer(
