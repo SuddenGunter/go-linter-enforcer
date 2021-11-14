@@ -26,6 +26,10 @@ func main() {
 			Username: cfg.Git.Username,
 			Password: cfg.Git.Password,
 		},
+		enforcer.Author{
+			Email: cfg.Git.Email,
+			Name:  cfg.Git.Username,
+		},
 		log,
 		readAll(cfg.ExpectedLinterConfig, log))
 
