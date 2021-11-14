@@ -6,13 +6,12 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/go-git/go-git/v5/plumbing/object"
-
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
 	"github.com/beinan/fastid"
 	"github.com/go-git/go-billy/v5/memfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/storage/memory"
 	"go.uber.org/zap"
