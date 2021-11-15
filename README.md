@@ -13,7 +13,7 @@ Create repositories list file (repos.json in this example):
 {
   "repositories": [
     {
-      "url": "http://localhost:3000/suddengunter/linterdemo.git",
+      "url": "http://localhost:3000/gunter/linterdemo.git",
       "name": "linterdemo",
       "mainBranch": "main"
     }
@@ -24,7 +24,7 @@ Create repositories list file (repos.json in this example):
 Set your env variables:
 ```env
 GIT_PASSWORD=password
-GIT_USERNAME=user
+GIT_USERNAME=gunter
 GIT_EMAIL=email@example.com
 ```
 Build & run:
