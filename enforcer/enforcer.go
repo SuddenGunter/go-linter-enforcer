@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
@@ -51,12 +52,16 @@ func (e *Enforcer) EnforceRules(r repository.Repository) {
 		repoLog.Errorw("errors when opening repository", "err", err)
 	}
 
-	// todo: what should we do if file is the same?!
-	if err := e.checkIfFileIsTheSame(repo); err == nil {
-		repoLog.Debugw("existing file matches expected file", "err", err)
+	exists, err := e.checkIfFileIsTheSame(repo)
+	if err != nil {
+		repoLog.Debugw("errors when comparing file with existing", "err", err)
+		return
 	}
 
-	repoLog.Errorw("errors when comparing file with existing", "err", err)
+	if exists {
+		repoLog.Debugw("file exist and matches expected")
+		return
+	}
 
 	if err := e.tryReplaceFile(repo); err != nil {
 		repoLog.Debugw("error when replacing file", "err", err)
@@ -108,35 +113,38 @@ func (e *Enforcer) getNewRefName() plumbing.ReferenceName {
 	return plumbing.NewBranchReferenceName(branchName)
 }
 
-func (e *Enforcer) checkIfFileIsTheSame(repo *git.Repository) error {
+func (e *Enforcer) checkIfFileIsTheSame(repo *git.Repository) (bool, error) {
 	worktree, err := repo.Worktree()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	file, err := worktree.Filesystem.Open(linterFileName)
-	if err != nil {
-		return err
+	switch {
+	case errors.Is(err, os.ErrNotExist):
+		return false, nil
+	case err != nil:
+		return false, err
 	}
 
 	defer file.Close()
 
 	existingFile, err := ioutil.ReadAll(file)
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if len(existingFile) != len(e.expectedFile) {
-		return errors.New("existing file length doesn't match expected")
+		return false, nil
 	}
 
 	for i, b := range existingFile {
 		if b != e.expectedFile[i] {
-			return errors.New("existing file doesn't match expected")
+			return false, nil
 		}
 	}
 
-	return nil
+	return true, nil
 }
 
 func (e *Enforcer) tryReplaceFile(repo *git.Repository) error {
