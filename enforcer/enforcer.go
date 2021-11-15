@@ -74,7 +74,7 @@ func (e *Enforcer) EnforceRules(r repository.Repository) {
 		return
 	}
 
-	repoLog.Debugw("commited new file", "file", linterFileName)
+	repoLog.Debugw("committed new file", "file", linterFileName)
 
 	// push new branch
 	if err := repo.Push(&git.PushOptions{
@@ -123,6 +123,7 @@ func (e *Enforcer) checkIfFileIsTheSame(repo *git.Repository) (bool, error) {
 	}
 
 	file, err := worktree.Filesystem.Open(linterFileName)
+
 	switch {
 	case errors.Is(err, os.ErrNotExist):
 		return false, nil
