@@ -74,6 +74,8 @@ func (e *Enforcer) EnforceRules(r repository.Repository) {
 		return
 	}
 
+	repoLog.Debugw("commited new file", "file", linterFileName)
+
 	// push new branch
 	if err := repo.Push(&git.PushOptions{
 		Auth: e.gitAuth,
