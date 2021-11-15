@@ -50,6 +50,7 @@ func (e *Enforcer) EnforceRules(r repository.Repository) {
 	repo, err := e.loadRepository(r)
 	if err != nil {
 		repoLog.Errorw("errors when opening repository", "err", err)
+		return
 	}
 
 	exists, err := e.checkIfFileIsTheSame(repo)
