@@ -4,6 +4,8 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/SuddenGunter/go-linter-enforcer/git"
+
 	"github.com/SuddenGunter/go-linter-enforcer/config"
 	"github.com/SuddenGunter/go-linter-enforcer/enforcer"
 	"github.com/SuddenGunter/go-linter-enforcer/logger"
@@ -21,20 +23,18 @@ func main() {
 		log.With("error", err).Fatal("unable to parse repositories list file")
 	}
 
-	enf := enforcer.NewEnforcer(
-		&http.BasicAuth{
-			Username: cfg.Git.Username,
-			Password: cfg.Git.Password,
-		},
-		enforcer.Author{
-			Email: cfg.Git.Email,
-			Name:  cfg.Git.Username,
-		},
-		log,
-		readAll(cfg.ExpectedLinterConfig, log))
+	gcp := git.NewClientProvider(log, &http.BasicAuth{
+		Username: cfg.Git.Username,
+		Password: cfg.Git.Password,
+	})
 
 	for _, r := range repos {
-		enf.EnforceRules(r)
+		enf := enforcer.NewEnforcer(gcp, log, repository.Author{
+			Email: cfg.Git.Email,
+			Name:  cfg.Git.Username,
+		}, r, readAll(cfg.ExpectedLinterConfig, log), cfg.DryRun)
+
+		enf.EnforceRules()
 	}
 }
 
