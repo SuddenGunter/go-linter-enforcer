@@ -15,6 +15,7 @@ type Config struct {
 	Git                  GitConfig `env:"GIT"`
 	RepositoriesFile     string    `default:"repos.json" env:"REPOSITORIES_LIST_FILE"`
 	ExpectedLinterConfig string    `default:"example.golangci.yaml" env:"LINTER_CONFIG_FILE"`
+	DryRun               bool      `default:"false" env:"DRY_RUN" flag:"dryRun"`
 }
 
 // FromEnv loads config values from env. Shuts down the application if something goes wrong.
@@ -25,6 +26,8 @@ func FromEnv(log *zap.SugaredLogger) Config {
 	if err := loader.Load(); err != nil {
 		log.Fatalw("failed to parse config from env", "err", err)
 	}
+
+	log.Debugw("running in mode", "dryRun", cfg.DryRun)
 
 	return cfg
 }
