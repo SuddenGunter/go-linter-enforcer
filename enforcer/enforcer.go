@@ -62,7 +62,7 @@ func (e *Enforcer) EnforceRules() {
 		return
 	}
 
-	e.log.Debugw("file exist and doesn't match expected")
+	e.log.Debugw("file doesn't match expected (or doesn't exist)")
 
 	if err := repo.Replace(linterFileName, e.expectedFile); err != nil {
 		e.log.Debugw("error when replacing file", "err", err)
