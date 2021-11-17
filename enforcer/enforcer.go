@@ -69,9 +69,10 @@ func (e *Enforcer) EnforceRules() {
 		return
 	}
 
-	e.log.Debugw("file replaced")
+	e.log.Debugw("replacing file")
 
 	if e.dryRun {
+		e.log.Debugw("dryRun mode enabled, no commits would be made")
 		return
 	}
 
