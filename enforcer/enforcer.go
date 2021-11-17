@@ -72,7 +72,7 @@ func (e *Enforcer) EnforceRules() {
 	e.log.Debugw("replacing file")
 
 	if e.dryRun {
-		e.log.Debugw("dryRun mode enabled, no commits would be made")
+		e.log.Debugw("dryRun mode is enabled, no commits would be made")
 		return
 	}
 
