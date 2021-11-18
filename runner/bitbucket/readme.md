@@ -1,4 +1,4 @@
-# Bitbucket integration
+# Bitbucket integration (temporary)
 
 ## gen-repos.py
 
