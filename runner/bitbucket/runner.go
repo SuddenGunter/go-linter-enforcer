@@ -7,8 +7,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type RunnerBuilder struct {
-}
+type RunnerBuilder struct{}
 
 func (r RunnerBuilder) CreateRunner(log *zap.SugaredLogger, config interface{}) runner.Runner {
 	panic("implement me")
@@ -18,8 +17,7 @@ func (r RunnerBuilder) ConfigType() reflect.Type {
 	panic("implement me")
 }
 
-type Runner struct {
-}
+type Runner struct{}
 
 func (r *Runner) Run() {
 	panic("implement me")

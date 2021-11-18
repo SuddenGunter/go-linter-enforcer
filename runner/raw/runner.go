@@ -15,7 +15,12 @@ type Runner struct {
 	cfg          Config
 }
 
-func NewRunner(gcp *git.ClientProvider, repos []repository.Repository, expectedFile []byte, log *zap.SugaredLogger, cfg Config) *Runner {
+func NewRunner(
+	gcp *git.ClientProvider,
+	repos []repository.Repository,
+	expectedFile []byte,
+	log *zap.SugaredLogger,
+	cfg Config) *Runner {
 	return &Runner{gcp: gcp, repos: repos, expectedFile: expectedFile, log: log, cfg: cfg}
 }
 

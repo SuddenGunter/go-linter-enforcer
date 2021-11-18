@@ -12,8 +12,7 @@ import (
 	"go.uber.org/zap"
 )
 
-type RunnerBuilder struct {
-}
+type RunnerBuilder struct{}
 
 func (r RunnerBuilder) CreateRunner(log *zap.SugaredLogger, config interface{}) runner.Runner {
 	cfg, ok := config.(Config)
