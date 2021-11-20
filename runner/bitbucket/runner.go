@@ -14,7 +14,12 @@ import (
 	"go.uber.org/zap"
 )
 
-const baseURL = "https://api.bitbucket.org"
+const (
+	baseURL = "https://api.bitbucket.org"
+	// pagelen allowed values range from 10 to 100.
+	pagelen     = 50
+	allowedLang = "go"
+)
 
 type Runner struct {
 	gcp          *git.ClientProvider
@@ -58,7 +63,7 @@ func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repositor
 	page := 1
 	for canMakeRequests {
 		// todo: extract to bitbucketApiClient struct
-		url := fmt.Sprintf("{%s}/2.0/repositories/{%s}?page={%v}", baseURL, runner.cfg.Organization, page)
+		url := fmt.Sprintf("%s/2.0/repositories/%s?page=%v&pagelen=%v", baseURL, runner.cfg.Organization, page, pagelen)
 		request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
 			return nil, fmt.Errorf("cannot form request. %s", err)
@@ -106,12 +111,13 @@ func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repositor
 		}
 
 		for _, r := range repos.Values {
-			// todo: check if language is Go
-			result = append(result, repository.Repository{
-				Name:       r.Name,
-				URL:        r.Links.Self.Href,
-				MainBranch: r.Mainbranch.Name,
-			})
+			if r.Language == allowedLang {
+				result = append(result, repository.Repository{
+					Name:       r.Name,
+					URL:        r.Links.Self.Href,
+					MainBranch: r.Mainbranch.Name,
+				})
+			}
 		}
 
 		page++
