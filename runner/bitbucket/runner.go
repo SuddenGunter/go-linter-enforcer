@@ -1,24 +1,44 @@
 package bitbucket
 
 import (
-	"reflect"
-
-	"github.com/SuddenGunter/go-linter-enforcer/runner"
+	"github.com/SuddenGunter/go-linter-enforcer/enforcer"
+	"github.com/SuddenGunter/go-linter-enforcer/git"
+	"github.com/SuddenGunter/go-linter-enforcer/repository"
 	"go.uber.org/zap"
 )
 
-type RunnerBuilder struct{}
-
-func (r RunnerBuilder) CreateRunner(log *zap.SugaredLogger, config interface{}) runner.Runner {
-	panic("implement me")
+type Runner struct {
+	gcp          *git.ClientProvider
+	expectedFile []byte
+	log          *zap.SugaredLogger
+	cfg          Config
 }
 
-func (r RunnerBuilder) ConfigType() reflect.Type {
-	panic("implement me")
+func NewRunner(
+	gcp *git.ClientProvider,
+	expectedFile []byte,
+	log *zap.SugaredLogger,
+	cfg Config) *Runner {
+	return &Runner{gcp: gcp, expectedFile: expectedFile, log: log, cfg: cfg}
 }
 
-type Runner struct{}
+func (runner *Runner) Run() {
+	repos, err := runner.loadReposList()
+	if err != nil {
+		runner.log.Errorw("failed to get repositories list", "err", err, "organization", runner.cfg.Organization)
+		return
+	}
 
-func (r *Runner) Run() {
+	for _, r := range repos {
+		enf := enforcer.NewEnforcer(runner.gcp, runner.log, repository.Author{
+			Email: runner.cfg.Git.Email,
+			Name:  runner.cfg.Git.Username,
+		}, r, runner.expectedFile, runner.cfg.DryRun)
+
+		enf.EnforceRules()
+	}
+}
+
+func (runner *Runner) loadReposList() ([]repository.Repository, error) {
 	panic("implement me")
 }
