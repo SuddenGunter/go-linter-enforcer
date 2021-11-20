@@ -40,5 +40,7 @@ func main() {
 func launchRunner(log *zap.SugaredLogger, r runner.Builder) {
 	cfg := reflect.New(r.ConfigType())
 	config.FromEnv(log, &cfg)
+
+	// todo: pass context for graceful shutdown
 	r.CreateRunner(log, cfg).Run()
 }
