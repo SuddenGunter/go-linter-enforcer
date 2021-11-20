@@ -44,12 +44,15 @@ func (runner *Runner) Run() {
 	}
 
 	for _, r := range repos {
+		// todo: do concurrently
 		enf := enforcer.NewEnforcer(runner.gcp, runner.log, repository.Author{
 			Email: runner.cfg.Git.Email,
 			Name:  runner.cfg.Git.Username,
 		}, r, runner.expectedFile, runner.cfg.DryRun)
 
 		enf.EnforceRules()
+
+		// todo: create PR
 	}
 }
 
