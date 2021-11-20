@@ -50,9 +50,7 @@ func (runner *Runner) Run() {
 			Name:  runner.cfg.Git.Username,
 		}, r, runner.expectedFile, runner.cfg.DryRun)
 
-		enf.EnforceRules()
-
-		// todo: create PR
+		enf.EnforceRules() // todo: create PR from new branch to main
 	}
 }
 
@@ -64,9 +62,11 @@ func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repositor
 	result := make([]repository.Repository, 0, 100)
 	canMakeRequests := true
 	page := 1
+
 	for canMakeRequests {
 		// todo: extract to bitbucketApiClient struct
 		url := fmt.Sprintf("%s/2.0/repositories/%s?page=%v&pagelen=%v", baseURL, runner.cfg.Organization, page, pagelen)
+
 		request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
 			return nil, fmt.Errorf("cannot form request. %s", err)
@@ -101,7 +101,7 @@ func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repositor
 				return nil, fmt.Errorf("failed unmarshal error form json body: %w", err)
 			}
 
-			return nil, fmt.Errorf("api error: %w", apiErr)
+			return nil, fmt.Errorf("api error: %v", apiErr)
 		}
 
 		var repos getRepositoriesResponse
