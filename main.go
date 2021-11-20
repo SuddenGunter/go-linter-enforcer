@@ -2,16 +2,14 @@ package main
 
 import (
 	"os"
-	"reflect"
 	"strings"
 
 	"go.uber.org/zap"
 
+	"github.com/SuddenGunter/go-linter-enforcer/runner/bitbucket"
 	"github.com/SuddenGunter/go-linter-enforcer/runner/raw"
 
 	"github.com/SuddenGunter/go-linter-enforcer/runner"
-
-	"github.com/SuddenGunter/go-linter-enforcer/runner/bitbucket"
 
 	"github.com/SuddenGunter/go-linter-enforcer/config"
 	"github.com/SuddenGunter/go-linter-enforcer/logger"
@@ -38,8 +36,8 @@ func main() {
 }
 
 func launchRunner(log *zap.SugaredLogger, r runner.Builder) {
-	cfg := reflect.New(r.ConfigType())
-	config.FromEnv(log, &cfg)
+	cfg := r.Config()
+	config.FromEnv(log, cfg)
 
 	// todo: pass context for graceful shutdown
 	r.CreateRunner(log, cfg).Run()

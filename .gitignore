@@ -19,3 +19,6 @@
 gitea/
 
 .vscode
+
+demo.env
+.env

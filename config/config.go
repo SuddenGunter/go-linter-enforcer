@@ -17,12 +17,20 @@ type Config struct {
 	DryRun               bool      `default:"false" env:"DRY_RUN" flag:"dryRun"`
 }
 
+func (cfg *Config) GetDryRunValue() bool {
+	return cfg.DryRun
+}
+
+type DryRunnable interface {
+	GetDryRunValue() bool
+}
+
 // FromEnv loads config values from env. Shuts down the application if something goes wrong.
 func FromEnv(log *zap.SugaredLogger, target interface{}) {
-	loader := aconfig.LoaderFor(&target, aconfig.Config{})
+	loader := aconfig.LoaderFor(target, aconfig.Config{})
 	if err := loader.Load(); err != nil {
 		log.Fatalw("failed to parse config from env", "err", err)
 	}
 
-	log.Debugw("running in mode", "dryRun", target.(Config).DryRun)
+	log.Debugw("running in mode", "dryRun", target.(DryRunnable).GetDryRunValue())
 }

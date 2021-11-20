@@ -3,7 +3,6 @@ package raw
 import (
 	"io/ioutil"
 	"os"
-	"reflect"
 
 	"github.com/SuddenGunter/go-linter-enforcer/git"
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
@@ -15,7 +14,7 @@ import (
 type RunnerBuilder struct{}
 
 func (r RunnerBuilder) CreateRunner(log *zap.SugaredLogger, config interface{}) runner.Runner {
-	cfg, ok := config.(Config)
+	cfg, ok := config.(*Config)
 	if !ok {
 		log.Fatal("unable to assert config as raw.Config{}")
 	}
@@ -30,11 +29,11 @@ func (r RunnerBuilder) CreateRunner(log *zap.SugaredLogger, config interface{}) 
 		Password: cfg.Git.Password,
 	})
 
-	return NewRunner(gcp, repos, readAll(cfg.ExpectedLinterConfig, log), log, cfg)
+	return NewRunner(gcp, repos, readAll(cfg.ExpectedLinterConfig, log), log, *cfg)
 }
 
-func (r RunnerBuilder) ConfigType() reflect.Type {
-	return reflect.TypeOf(Config{})
+func (r RunnerBuilder) Config() interface{} {
+	return &Config{}
 }
 
 func readAll(linterConfig string, log *zap.SugaredLogger) []byte {
