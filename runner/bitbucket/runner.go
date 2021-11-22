@@ -62,6 +62,7 @@ func (runner *Runner) Run() {
 	}
 }
 
+//nolint:gocognit,gocyclo
 func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repository, error) {
 	httpClient := http.Client{
 		Timeout: 15 * time.Second,
