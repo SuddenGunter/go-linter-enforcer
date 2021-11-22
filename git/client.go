@@ -181,7 +181,12 @@ func (c *Client) SaveChanges(commitMsg string, author repository.Author) error {
 	})
 }
 
+// CurrentBranchName is returned in short form, e.g.: "refs/feature/foo" -> "feature/foo".
 func (c *Client) CurrentBranchName() (string, error) {
 	ref, err := c.Head()
-	if 
+	if err != nil {
+		return "", err
+	}
+
+	return ref.Name().Short(), nil
 }

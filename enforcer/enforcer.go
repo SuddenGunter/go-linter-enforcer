@@ -86,5 +86,5 @@ func (e *Enforcer) EnforceRules() (string, error) {
 
 	e.log.Debugw("committed new file", "file", linterFileName)
 
-	return repo., nil
+	return repo.CurrentBranchName()
 }
