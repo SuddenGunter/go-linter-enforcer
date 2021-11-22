@@ -180,3 +180,8 @@ func (c *Client) SaveChanges(commitMsg string, author repository.Author) error {
 		Auth: c.auth,
 	})
 }
+
+func (c *Client) CurrentBranchName() (string, error) {
+	ref, err := c.Head()
+	if 
+}

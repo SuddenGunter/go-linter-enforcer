@@ -10,4 +10,5 @@ type GitClient interface {
 	FileEquals(path string, content []byte) (bool, error)
 	Replace(path string, content []byte) error
 	SaveChanges(commitMsg string, author Author) error
+	CurrentBranchName() (string, error)
 }
