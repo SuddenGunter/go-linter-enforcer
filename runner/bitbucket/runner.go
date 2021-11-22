@@ -37,6 +37,7 @@ func NewRunner(
 }
 
 func (runner *Runner) Run() {
+	// todo: pass ctx from caller
 	repos, err := runner.loadReposList(context.Background())
 	if err != nil {
 		runner.log.Errorw("failed to get repositories list", "err", err, "organization", runner.cfg.Organization)
@@ -50,10 +51,18 @@ func (runner *Runner) Run() {
 			Name:  runner.cfg.Git.Username,
 		}, r, runner.expectedFile, runner.cfg.DryRun)
 
-		enf.EnforceRules() // todo: create PR from new branch to main
+		branchName, err := enf.EnforceRules() // todo: create PR from new branch to main
+		if err != nil {
+			runner.log.With("repo", r.Name).With("err", err).Error("failed to enforce rules, skipping repository")
+			continue
+		}
+
+		// todo: pass ctx from caller
+		runner.createPR(context.Background(), r, branchName)
 	}
 }
 
+//nolint:gocognit,gocyclo
 func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repository, error) {
 	httpClient := http.Client{
 		Timeout: 15 * time.Second,
@@ -127,4 +136,8 @@ func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repositor
 	}
 
 	return result, nil
+}
+
+func (runner *Runner) createPR(ctx context.Context, r repository.Repository, name string) {
+	// todo:
 }

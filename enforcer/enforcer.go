@@ -1,6 +1,9 @@
 package enforcer
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
 	"go.uber.org/zap"
 )
@@ -8,6 +11,12 @@ import (
 const (
 	linterFileName = ".golangci.yaml"
 	commitMessage  = "🤖 update " + linterFileName + " according to latest changes"
+)
+
+var (
+	ErrNothingToCommit = errors.New("nothing to commit: expected state matches actual")
+	// todo: rename drymode -> dryrun
+	ErrDryModeEnabled = errors.New("nothing to commit: dryMode enabled")
 )
 
 type GitClientProvider interface {
@@ -42,44 +51,40 @@ func NewEnforcer(
 	}
 }
 
-func (e *Enforcer) EnforceRules() {
+func (e *Enforcer) EnforceRules() (string, error) {
 	repo, err := e.provider.OpenRepository(e.repo)
 	if err != nil {
-		e.log.Errorw("errors when opening repository", "err", err)
-		return
+		return "", fmt.Errorf("errors when opening repository: %w", err)
 	}
 
 	e.log.Debugw("repo opened")
 
-	exists, err := repo.FileEquals(linterFileName, e.expectedFile)
+	equals, err := repo.FileEquals(linterFileName, e.expectedFile)
 	if err != nil {
-		e.log.Debugw("errors when comparing file with existing", "err", err)
-		return
+		return "", fmt.Errorf("errors when comparing file with existing: %w", err)
 	}
 
-	if exists {
-		e.log.Debugw("file exist and matches expected")
-		return
+	if equals {
+		return "", ErrNothingToCommit
 	}
 
 	e.log.Debugw("file doesn't match expected (or doesn't exist)")
 
 	if err := repo.Replace(linterFileName, e.expectedFile); err != nil {
-		e.log.Debugw("error when replacing file", "err", err)
-		return
+		return "", fmt.Errorf("error when replacing file: %w", err)
 	}
 
 	e.log.Debugw("replacing file")
 
 	if e.dryRun {
-		e.log.Debugw("dryRun mode is enabled, no commits would be made")
-		return
+		return "", ErrDryModeEnabled
 	}
 
 	if err := repo.SaveChanges(commitMessage, e.commitAuthor); err != nil {
-		e.log.Errorw("errors when trying to commit", "err", err)
-		return
+		return "", fmt.Errorf("error when commit changes: %w", err)
 	}
 
 	e.log.Debugw("committed new file", "file", linterFileName)
+
+	return repo.CurrentBranchName()
 }

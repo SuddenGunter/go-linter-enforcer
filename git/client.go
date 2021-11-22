@@ -180,3 +180,13 @@ func (c *Client) SaveChanges(commitMsg string, author repository.Author) error {
 		Auth: c.auth,
 	})
 }
+
+// CurrentBranchName is returned in short form, e.g.: "refs/feature/foo" -> "feature/foo".
+func (c *Client) CurrentBranchName() (string, error) {
+	ref, err := c.Head()
+	if err != nil {
+		return "", err
+	}
+
+	return ref.Name().Short(), nil
+}
