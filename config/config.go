@@ -6,9 +6,10 @@ import (
 )
 
 type GitConfig struct {
-	Username string `env:"USERNAME"`
-	Password string `env:"PASSWORD"`
-	Email    string `env:"EMAIL"`
+	Username              string `env:"USERNAME"`
+	SSHPrivateKeyPath     string `env:"SSH_PRIVATE_KEY_PATH"`
+	SSHPrivateKeyPassword string `env:"SSH_PRIVATE_KEY_PASSWORD"`
+	Email                 string `env:"EMAIL"`
 }
 
 type Config struct {

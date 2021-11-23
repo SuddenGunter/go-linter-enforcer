@@ -33,12 +33,18 @@ func NewClientProvider(log *zap.SugaredLogger, auth transport.AuthMethod) *Clien
 
 func (p *ClientProvider) OpenRepository(repo repository.Repository) (repository.GitClient, error) {
 	r, err := git.Clone(memory.NewStorage(), memfs.New(), &git.CloneOptions{
-		URL:  repo.URL,
+		URL:  repo.SSHURL,
 		Auth: p.auth,
 	})
 	if err != nil {
 		return nil, err
 	}
+
+	// todo: check if 'lintenforcer/*' already exists
+	//iter, err := r.Branches()
+	//iter.ForEach(func(reference *plumbing.Reference) error {
+	//	reference.Name()
+	//})
 
 	worktree, err := r.Worktree()
 	if err != nil {
