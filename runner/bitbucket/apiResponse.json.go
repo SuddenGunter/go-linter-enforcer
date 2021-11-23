@@ -3,9 +3,8 @@ package bitbucket
 type getRepositoriesResponse struct {
 	Values []struct {
 		Links struct {
-			Self struct {
-				Href string `json:"href"`
-			} `json:"self"`
+			Clone []LinkWrapper `json:"clone"`
+			Self  LinkWrapper   `json:"self"`
 		} `json:"links"`
 		Name       string `json:"name"`
 		Language   string `json:"language"`
@@ -15,4 +14,9 @@ type getRepositoriesResponse struct {
 	} `json:"values"`
 	Page int    `json:"page"`
 	Next string `json:"next"`
+}
+
+type LinkWrapper struct {
+	Name string `json:"name"`
+	Href string `json:"href"`
 }

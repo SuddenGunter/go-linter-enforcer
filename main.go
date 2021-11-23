@@ -7,7 +7,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/SuddenGunter/go-linter-enforcer/runner/bitbucket"
-	"github.com/SuddenGunter/go-linter-enforcer/runner/raw"
 
 	"github.com/SuddenGunter/go-linter-enforcer/runner"
 
@@ -17,7 +16,6 @@ import (
 
 const (
 	Bitbucket = "BITBUCKET"
-	Raw       = "RAW"
 )
 
 func main() {
@@ -28,8 +26,6 @@ func main() {
 	switch strings.ToUpper(mode) {
 	case Bitbucket:
 		launchRunner(log, bitbucket.RunnerBuilder{})
-	case Raw:
-		launchRunner(log, raw.RunnerBuilder{})
 	default:
 		log.With("err", "unknown mode").With("mode", mode).Fatal("failed to start runner")
 	}

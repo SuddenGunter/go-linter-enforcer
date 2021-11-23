@@ -114,6 +114,7 @@ func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repositor
 		}
 
 		var repos getRepositoriesResponse
+
 		if err = json.Unmarshal(body, &repos); err != nil {
 			return nil, fmt.Errorf("failed unmarshal response from JSON body: %w", err)
 		}
@@ -126,7 +127,8 @@ func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repositor
 			if r.Language == allowedLang {
 				result = append(result, repository.Repository{
 					Name:       r.Name,
-					URL:        r.Links.Self.Href,
+					HTTPSURL:   r.Links.Self.Href,
+					SSHURL:     runner.getSSHURL(r.Links.Clone),
 					MainBranch: r.Mainbranch.Name,
 				})
 			}
@@ -140,4 +142,14 @@ func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repositor
 
 func (runner *Runner) createPR(ctx context.Context, r repository.Repository, name string) {
 	// todo:
+}
+
+func (runner *Runner) getSSHURL(links []LinkWrapper) string {
+	for _, v := range links {
+		if v.Name == "ssh" {
+			return v.Href
+		}
+	}
+
+	return ""
 }

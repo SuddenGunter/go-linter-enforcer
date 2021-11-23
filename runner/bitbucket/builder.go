@@ -4,9 +4,10 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
+
 	"github.com/SuddenGunter/go-linter-enforcer/git"
 	"github.com/SuddenGunter/go-linter-enforcer/runner"
-	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"go.uber.org/zap"
 )
 
@@ -18,10 +19,12 @@ func (r RunnerBuilder) CreateRunner(log *zap.SugaredLogger, config interface{}) 
 		log.Fatal("unable to assert config as bitbucket.Config{}")
 	}
 
-	gcp := git.NewClientProvider(log, &http.BasicAuth{
-		Username: cfg.Git.Username,
-		Password: cfg.Git.Password,
-	})
+	publicKeys, err := ssh.NewPublicKeysFromFile("git", cfg.Git.SSHPrivateKeyPath, cfg.Git.SSHPrivateKeyPassword)
+	if err != nil {
+		log.Fatalw("failed to configure ssh", "SSHPrivateKeyPath", cfg.Git.SSHPrivateKeyPath, "err", err)
+	}
+
+	gcp := git.NewClientProvider(log, publicKeys)
 
 	return NewRunner(gcp, readAll(cfg.ExpectedLinterConfig, log), log, *cfg)
 }

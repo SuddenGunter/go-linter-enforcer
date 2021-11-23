@@ -2,7 +2,8 @@ package repository
 
 type Repository struct {
 	Name       string `json:"name"`
-	URL        string `json:"url"`
+	HTTPSURL   string `json:"httpsUrl"`
+	SSHURL     string `json:"sshUrl"`
 	MainBranch string `json:"mainBranch"`
 }
 
