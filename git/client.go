@@ -41,10 +41,10 @@ func (p *ClientProvider) OpenRepository(repo repository.Repository) (repository.
 	}
 
 	// todo: check if 'lintenforcer/*' already exists
-	//iter, err := r.Branches()
-	//iter.ForEach(func(reference *plumbing.Reference) error {
+	// iter, err := r.Branches()
+	// iter.ForEach(func(reference *plumbing.Reference) error {
 	//	reference.Name()
-	//})
+	// })
 
 	worktree, err := r.Worktree()
 	if err != nil {
