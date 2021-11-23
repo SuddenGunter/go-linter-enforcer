@@ -1,9 +1,0 @@
-{
-  "repositories": [
-    {
-      "url": "git@localhost:222:gunter/linterdemo.git",
-      "name": "linterdemo",
-      "mainBranch": "main"
-    }
-  ]
-}

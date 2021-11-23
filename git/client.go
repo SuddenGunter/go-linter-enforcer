@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
@@ -19,7 +20,8 @@ import (
 )
 
 const (
-	branchNameTemplate = "lintenforcer/2006-01-02-%v"
+	branchNamePrefix   = "lintenforcer"
+	branchNameTemplate = branchNamePrefix + "/2006-01-02-%v"
 )
 
 type ClientProvider struct {
@@ -40,11 +42,22 @@ func (p *ClientProvider) OpenRepository(repo repository.Repository) (repository.
 		return nil, err
 	}
 
-	// todo: check if 'lintenforcer/*' already exists
-	// iter, err := r.Branches()
-	// iter.ForEach(func(reference *plumbing.Reference) error {
-	//	reference.Name()
-	// })
+	refIter, err := r.References()
+	if err != nil {
+		return nil, err
+	}
+
+	err = refIter.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Name().IsRemote() {
+			if strings.Contains(ref.Name().Short(), branchNamePrefix) {
+				return errors.New(branchNamePrefix + "/ branch already exists")
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
 
 	worktree, err := r.Worktree()
 	if err != nil {
