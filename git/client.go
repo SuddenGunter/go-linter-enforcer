@@ -42,18 +42,20 @@ func (p *ClientProvider) OpenRepository(repo repository.Repository) (repository.
 		return nil, err
 	}
 
-	// todo: check if 'lintenforcer/*' already exists
-	iter, err := r.Branches()
+	refIter, err := r.References()
 	if err != nil {
 		return nil, err
 	}
-	if err = iter.ForEach(func(reference *plumbing.Reference) error {
-		if strings.Contains(reference.Name().Short(), branchNamePrefix) {
-			return errors.New(branchNamePrefix + "/ branch already exists")
-		}
 
+	err = refIter.ForEach(func(ref *plumbing.Reference) error {
+		if ref.Name().IsRemote() {
+			if strings.Contains(ref.Name().Short(), branchNamePrefix) {
+				return errors.New(branchNamePrefix + "/ branch already exists")
+			}
+		}
 		return nil
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, err
 	}
 
