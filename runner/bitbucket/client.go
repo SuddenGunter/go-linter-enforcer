@@ -19,51 +19,20 @@ type Client struct {
 
 func (c *Client) LoadReposList(ctx context.Context) ([]repository.Repository, error) {
 	result := make([]repository.Repository, 0, 100)
-	canMakeRequests := true
-	page := 1
 
-	for canMakeRequests {
+	canMakeRequests := true
+
+	for page := 1; canMakeRequests; page++ {
 		url := fmt.Sprintf("%s/2.0/repositories/%s?page=%v&pagelen=%v", baseURL, c.Organization, page, pagelen)
+
 		response, err := c.performRequest(ctx, url, http.MethodGet, nil)
 		if err != nil {
-			return nil, fmt.Errorf("failed api call: %w"), err)
-		}
-
-		request.Header.Set("Content-Type", "application/json")
-		request.SetBasicAuth(c.Login, c.AppPassword)
-
-		response, err := c.Do(request)
-		if err != nil {
-			return nil, fmt.Errorf("request failed: %w", err)
-		}
-
-		defer func() {
-			if closeErr := response.Body.Close(); err == nil {
-				err = fmt.Errorf("closing response body: %w", closeErr)
-			}
-		}()
-
-		body, err := io.ReadAll(response.Body)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read body: %w", err)
-		}
-
-		if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-			if len(body) == 0 {
-				return nil, fmt.Errorf("request failed but no detailed error received. status code: %v", response.StatusCode)
-			}
-
-			var apiErr map[string]interface{}
-			if err = json.Unmarshal(body, &apiErr); err != nil {
-				return nil, fmt.Errorf("failed unmarshal error form json body: %w", err)
-			}
-
-			return nil, fmt.Errorf("api error: %v", apiErr)
+			return nil, fmt.Errorf("failed bitbucket api call: %w", err)
 		}
 
 		var repos getRepositoriesResponse
 
-		if err = json.Unmarshal(body, &repos); err != nil {
+		if err = json.Unmarshal(response, &repos); err != nil {
 			return nil, fmt.Errorf("failed unmarshal response from JSON body: %w", err)
 		}
 
@@ -86,6 +55,10 @@ func (c *Client) LoadReposList(ctx context.Context) ([]repository.Repository, er
 	}
 
 	return result, nil
+}
+
+func (c *Client) CreatePR(ctx context.Context, r repository.Repository, name string) {
+	panic("not impl")
 }
 
 func (c *Client) performRequest(ctx context.Context, url, method string, body io.Reader) ([]byte, error) {
@@ -129,7 +102,7 @@ func (c *Client) performRequest(ctx context.Context, url, method string, body io
 	return responseBody, nil
 }
 
-func (c *Client) getSSHURL(links []LinkWrapper) string {
+func (c *Client) getSSHURL(links []linkWrapper) string {
 	for _, v := range links {
 		if v.Name == "ssh" {
 			return v.Href
@@ -137,4 +110,25 @@ func (c *Client) getSSHURL(links []LinkWrapper) string {
 	}
 
 	return ""
+}
+
+type getRepositoriesResponse struct {
+	Values []struct {
+		Links struct {
+			Clone []linkWrapper `json:"clone"`
+			Self  linkWrapper   `json:"self"`
+		} `json:"links"`
+		Name       string `json:"name"`
+		Language   string `json:"language"`
+		Mainbranch struct {
+			Name string `json:"name"`
+		} `json:"mainbranch"`
+	} `json:"values"`
+	Page int    `json:"page"`
+	Next string `json:"next"`
+}
+
+type linkWrapper struct {
+	Name string `json:"name"`
+	Href string `json:"href"`
 }

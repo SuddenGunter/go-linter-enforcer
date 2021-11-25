@@ -1,6 +1,8 @@
 package runner
 
 import (
+	"context"
+
 	"go.uber.org/zap"
 )
 
@@ -10,5 +12,5 @@ type Builder interface {
 }
 
 type Runner interface {
-	Run()
+	Run(ctx context.Context)
 }

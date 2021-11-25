@@ -2,6 +2,8 @@ package bitbucket
 
 import (
 	"context"
+	"net/http"
+	"time"
 
 	"github.com/SuddenGunter/go-linter-enforcer/enforcer"
 	"github.com/SuddenGunter/go-linter-enforcer/git"
@@ -21,6 +23,7 @@ type Runner struct {
 	expectedFile []byte
 	log          *zap.SugaredLogger
 	cfg          Config
+	client       *Client
 }
 
 func NewRunner(
@@ -28,12 +31,21 @@ func NewRunner(
 	expectedFile []byte,
 	log *zap.SugaredLogger,
 	cfg Config) *Runner {
-	return &Runner{gcp: gcp, expectedFile: expectedFile, log: log, cfg: cfg}
+	return &Runner{gcp: gcp, expectedFile: expectedFile, log: log, cfg: cfg, client: &Client{
+		Client: http.Client{
+			Timeout: 15 * time.Second,
+		},
+		Organization: cfg.Organization,
+		Login:        cfg.Login,
+		AppPassword:  cfg.AppPassword,
+	}}
 }
 
-func (runner *Runner) Run() {
-	// todo: pass ctx from caller
-	repos, err := runner.loadReposList(context.Background())
+func (runner *Runner) Run(ctx context.Context) {
+	timeout, cancel := context.WithTimeout(ctx, 3*time.Minute)
+	defer cancel()
+
+	repos, err := runner.client.LoadReposList(timeout)
 	if err != nil {
 		runner.log.Errorw("failed to get repositories list", "err", err, "organization", runner.cfg.Organization)
 		return
@@ -46,22 +58,12 @@ func (runner *Runner) Run() {
 			Name:  runner.cfg.Git.Username,
 		}, r, runner.expectedFile, runner.cfg.DryRun)
 
-		branchName, err := enf.EnforceRules() // todo: create PR from new branch to main
+		branchName, err := enf.EnforceRules()
 		if err != nil {
 			runner.log.With("repo", r.Name).With("err", err).Error("failed to enforce rules, skipping repository")
 			continue
 		}
 
-		// todo: pass ctx from caller
-		runner.createPR(context.Background(), r, branchName)
+		runner.client.CreatePR(timeout, r, branchName)
 	}
-}
-
-//nolint:gocognit,gocyclo
-func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repository, error) {
-	panic("not impl")
-}
-
-func (runner *Runner) createPR(ctx context.Context, r repository.Repository, name string) {
-	// todo:
 }
