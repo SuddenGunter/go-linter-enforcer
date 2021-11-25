@@ -2,11 +2,6 @@ package bitbucket
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
-	"io"
-	"net/http"
-	"time"
 
 	"github.com/SuddenGunter/go-linter-enforcer/enforcer"
 	"github.com/SuddenGunter/go-linter-enforcer/git"
@@ -64,92 +59,9 @@ func (runner *Runner) Run() {
 
 //nolint:gocognit,gocyclo
 func (runner *Runner) loadReposList(ctx context.Context) ([]repository.Repository, error) {
-	httpClient := http.Client{
-		Timeout: 15 * time.Second,
-	}
-
-	result := make([]repository.Repository, 0, 100)
-	canMakeRequests := true
-	page := 1
-
-	for canMakeRequests {
-		// todo: extract to bitbucketApiClient struct
-		url := fmt.Sprintf("%s/2.0/repositories/%s?page=%v&pagelen=%v", baseURL, runner.cfg.Organization, page, pagelen)
-
-		request, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-		if err != nil {
-			return nil, fmt.Errorf("cannot form request. %s", err)
-		}
-
-		request.Header.Set("Content-Type", "application/json")
-		request.SetBasicAuth(runner.cfg.Login, runner.cfg.AppPassword)
-
-		response, err := httpClient.Do(request)
-		if err != nil {
-			return nil, fmt.Errorf("request failed: %w", err)
-		}
-
-		defer func() {
-			if closeErr := response.Body.Close(); err == nil {
-				err = fmt.Errorf("closing response body: %s", closeErr)
-			}
-		}()
-
-		body, err := io.ReadAll(response.Body)
-		if err != nil {
-			return nil, fmt.Errorf("unable to read body: %s", err)
-		}
-
-		if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-			if len(body) == 0 {
-				return nil, fmt.Errorf("request failed but no detailed error received. status code: %v", response.StatusCode)
-			}
-
-			var apiErr map[string]interface{}
-			if err = json.Unmarshal(body, &apiErr); err != nil {
-				return nil, fmt.Errorf("failed unmarshal error form json body: %w", err)
-			}
-
-			return nil, fmt.Errorf("api error: %v", apiErr)
-		}
-
-		var repos getRepositoriesResponse
-
-		if err = json.Unmarshal(body, &repos); err != nil {
-			return nil, fmt.Errorf("failed unmarshal response from JSON body: %w", err)
-		}
-
-		if repos.Next == "" {
-			canMakeRequests = false
-		}
-
-		for _, r := range repos.Values {
-			if r.Language == allowedLang {
-				result = append(result, repository.Repository{
-					Name:       r.Name,
-					HTTPSURL:   r.Links.Self.Href,
-					SSHURL:     runner.getSSHURL(r.Links.Clone),
-					MainBranch: r.Mainbranch.Name,
-				})
-			}
-		}
-
-		page++
-	}
-
-	return result, nil
+	panic("not impl")
 }
 
 func (runner *Runner) createPR(ctx context.Context, r repository.Repository, name string) {
 	// todo:
-}
-
-func (runner *Runner) getSSHURL(links []LinkWrapper) string {
-	for _, v := range links {
-		if v.Name == "ssh" {
-			return v.Href
-		}
-	}
-
-	return ""
 }
