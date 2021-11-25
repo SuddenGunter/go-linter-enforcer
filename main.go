@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"strings"
 
@@ -36,5 +37,5 @@ func launchRunner(log *zap.SugaredLogger, r runner.Builder) {
 	config.FromEnv(log, cfg)
 
 	// todo: pass context for graceful shutdown
-	r.CreateRunner(log, cfg).Run()
+	r.CreateRunner(log, cfg).Run(context.TODO())
 }
