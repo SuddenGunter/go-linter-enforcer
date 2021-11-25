@@ -25,15 +25,11 @@ func (c *Client) LoadReposList(ctx context.Context) ([]repository.Repository, er
 	for page := 1; canMakeRequests; page++ {
 		url := fmt.Sprintf("%s/2.0/repositories/%s?page=%v&pagelen=%v", baseURL, c.Organization, page, pagelen)
 
-		response, err := c.performRequest(ctx, url, http.MethodGet, nil)
-		if err != nil {
-			return nil, fmt.Errorf("failed bitbucket api call: %w", err)
-		}
-
 		var repos getRepositoriesResponse
 
-		if err = json.Unmarshal(response, &repos); err != nil {
-			return nil, fmt.Errorf("failed unmarshal response from JSON body: %w", err)
+		err := c.performRequest(ctx, url, http.MethodGet, nil, &repos)
+		if err != nil {
+			return nil, fmt.Errorf("failed bitbucket api call: %w", err)
 		}
 
 		if repos.Next == "" {
@@ -61,10 +57,10 @@ func (c *Client) CreatePR(ctx context.Context, r repository.Repository, name str
 	panic("not impl")
 }
 
-func (c *Client) performRequest(ctx context.Context, url, method string, body io.Reader) ([]byte, error) {
+func (c *Client) performRequest(ctx context.Context, url, method string, body io.Reader, parsedResponse interface{}) error {
 	request, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
-		return nil, fmt.Errorf("cannot form request. %w", err)
+		return fmt.Errorf("cannot form request. %w", err)
 	}
 
 	request.Header.Set("Content-Type", "application/json")
@@ -72,9 +68,10 @@ func (c *Client) performRequest(ctx context.Context, url, method string, body io
 
 	response, err := c.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("request failed: %w", err)
+		return fmt.Errorf("request failed: %w", err)
 	}
 
+	// todo: what if body == nil?
 	defer func() {
 		if closeErr := response.Body.Close(); err == nil {
 			err = fmt.Errorf("closing response body: %w", closeErr)
@@ -83,23 +80,27 @@ func (c *Client) performRequest(ctx context.Context, url, method string, body io
 
 	responseBody, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, fmt.Errorf("unable to read body: %w", err)
+		return fmt.Errorf("unable to read body: %w", err)
 	}
 
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		if len(responseBody) == 0 {
-			return nil, fmt.Errorf("request failed but no detailed error received. status code: %v", response.StatusCode)
+			return fmt.Errorf("request failed but no detailed error received. status code: %v", response.StatusCode)
 		}
 
 		var apiErr map[string]interface{}
 		if err = json.Unmarshal(responseBody, &apiErr); err != nil {
-			return nil, fmt.Errorf("failed unmarshal error form json body: %w", err)
+			return fmt.Errorf("failed unmarshal error form json body: %w", err)
 		}
 
-		return nil, fmt.Errorf("api error: %v", apiErr)
+		return fmt.Errorf("api error: %v", apiErr)
 	}
 
-	return responseBody, nil
+	if err = json.Unmarshal(responseBody, parsedResponse); err != nil {
+		return fmt.Errorf("failed unmarshal response from JSON body: %w", err)
+	}
+
+	return nil
 }
 
 func (c *Client) getSSHURL(links []linkWrapper) string {
