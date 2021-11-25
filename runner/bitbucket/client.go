@@ -57,7 +57,11 @@ func (c *Client) CreatePR(ctx context.Context, r repository.Repository, name str
 	panic("not impl")
 }
 
-func (c *Client) performRequest(ctx context.Context, url, method string, body io.Reader, parsedResponse interface{}) error {
+func (c *Client) performRequest(
+	ctx context.Context,
+	url, method string,
+	body io.Reader,
+	parsedResponse interface{}) error {
 	request, err := http.NewRequestWithContext(ctx, method, url, body)
 	if err != nil {
 		return fmt.Errorf("cannot form request. %w", err)
