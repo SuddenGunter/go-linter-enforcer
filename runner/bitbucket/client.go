@@ -9,7 +9,6 @@ import (
 	"net/http"
 
 	"github.com/SuddenGunter/go-linter-enforcer/enforcer"
-
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
 )
 
@@ -67,6 +66,12 @@ type source struct {
 
 type branch struct {
 	Name string `json:"name"`
+}
+
+type CreatePRResponse struct {
+	Links struct {
+		HTML linkWrapper `json:"html"`
+	} `json:"links"`
 }
 
 func (c *Client) CreatePR(

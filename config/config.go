@@ -15,16 +15,17 @@ type GitConfig struct {
 type Config struct {
 	Git                  GitConfig `env:"GIT"`
 	ExpectedLinterConfig string    `default:"example.golangci.yaml" env:"LINTER_CONFIG_FILE"`
-	DryRun               bool      `default:"false" env:"DRY_RUN" flag:"dryRun"`
+	// todo: DryRun               bool      `default:"false" env:"DRY_RUN" flag:"dryRun"`
 }
 
-func (cfg *Config) GetDryRunValue() bool {
-	return cfg.DryRun
-}
-
-type DryRunnable interface {
-	GetDryRunValue() bool
-}
+// todo
+//func (cfg *Config) GetDryRunValue() bool {
+//	return cfg.DryRun
+//}
+//
+//type DryRunnable interface {
+//	GetDryRunValue() bool
+//}
 
 // FromEnv loads config values from env. Shuts down the application if something goes wrong.
 func FromEnv(log *zap.SugaredLogger, target interface{}) {
@@ -33,5 +34,5 @@ func FromEnv(log *zap.SugaredLogger, target interface{}) {
 		log.Fatalw("failed to parse config from env", "err", err)
 	}
 
-	log.Debugw("running in mode", "dryRun", target.(DryRunnable).GetDryRunValue())
+	// todo log.Debugw("running in mode", "dryRun", target.(DryRunnable).GetDryRunValue())
 }

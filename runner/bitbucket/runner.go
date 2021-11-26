@@ -53,10 +53,11 @@ func (runner *Runner) Run(ctx context.Context) {
 
 	for _, r := range repos {
 		// todo: do concurrently
+		// todo: pass dryRun config
 		enf := enforcer.NewEnforcer(runner.gcp, runner.log, repository.Author{
 			Email: runner.cfg.Git.Email,
 			Name:  runner.cfg.Git.Username,
-		}, r, runner.expectedFile, runner.cfg.DryRun)
+		}, r, runner.expectedFile, false)
 
 		branchName, err := enf.EnforceRules()
 		if err != nil {
@@ -64,6 +65,12 @@ func (runner *Runner) Run(ctx context.Context) {
 			continue
 		}
 
-		runner.client.CreatePR(timeout, r, branchName)
+		resp, err := runner.client.CreatePR(timeout, r, branchName)
+		if err != nil {
+			runner.log.With("repo", r.Name).With("err", err).Error("failed to create PR")
+			continue
+		}
+
+		runner.log.Debugw("create pr response", "resp", resp)
 	}
 }
