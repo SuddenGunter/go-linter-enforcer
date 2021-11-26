@@ -77,7 +77,7 @@ type CreatePRResponse struct {
 func (c *Client) CreatePR(
 	ctx context.Context,
 	repo repository.Repository,
-	branchName string) (map[string]interface{}, error) {
+	branchName string) (CreatePRResponse, error) {
 
 	// todo: dry run support
 	url := fmt.Sprintf("%s/2.0/repositories/%s/%s/pullrequests", baseURL, c.Organization, repo.Name)
@@ -88,10 +88,10 @@ func (c *Client) CreatePR(
 
 	body, err := json.Marshal(&req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create PR: %w", err)
+		return CreatePRResponse{}, fmt.Errorf("failed to create PR: %w", err)
 	}
 
-	var expectedResponse map[string]interface{}
+	var expectedResponse CreatePRResponse
 
 	err = c.performRequest(ctx, url, http.MethodPost, bytes.NewBuffer(body), &expectedResponse)
 

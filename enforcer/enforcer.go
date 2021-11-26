@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	LinterFileName = ".golangci.yaml"
+	LinterFileName = ".golangci.yml"
 	CommitMessage  = "🤖 update " + LinterFileName + " according to latest changes"
 )
 

@@ -14,7 +14,7 @@ type GitConfig struct {
 
 type Config struct {
 	Git                  GitConfig `env:"GIT"`
-	ExpectedLinterConfig string    `default:"example.golangci.yaml" env:"LINTER_CONFIG_FILE"`
+	ExpectedLinterConfig string    `default:"example.golangci.yml" env:"LINTER_CONFIG_FILE"`
 	// todo: DryRun               bool      `default:"false" env:"DRY_RUN" flag:"dryRun"`
 }
 

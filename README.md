@@ -24,7 +24,7 @@ BITBUCKET_ORGANIZATION=your_org
 MODE=bitbucket
 ```
 
-Replace `example.golangci.yaml` with your preferred config.
+Replace `example.golangci.yml` with your preferred config.
 
 Build & run:
 ```cgo
