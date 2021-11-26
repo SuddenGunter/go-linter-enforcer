@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	linterFileName = ".golangci.yaml"
-	commitMessage  = "🤖 update " + linterFileName + " according to latest changes"
+	LinterFileName = ".golangci.yml"
+	CommitMessage  = "🤖 update " + LinterFileName + " according to latest changes"
 )
 
 var (
@@ -59,7 +59,7 @@ func (e *Enforcer) EnforceRules() (string, error) {
 
 	e.log.Debugw("repo opened")
 
-	equals, err := repo.FileEquals(linterFileName, e.expectedFile)
+	equals, err := repo.FileEquals(LinterFileName, e.expectedFile)
 	if err != nil {
 		return "", fmt.Errorf("errors when comparing file with existing: %w", err)
 	}
@@ -70,7 +70,7 @@ func (e *Enforcer) EnforceRules() (string, error) {
 
 	e.log.Debugw("file doesn't match expected (or doesn't exist)")
 
-	if err := repo.Replace(linterFileName, e.expectedFile); err != nil {
+	if err := repo.Replace(LinterFileName, e.expectedFile); err != nil {
 		return "", fmt.Errorf("error when replacing file: %w", err)
 	}
 
@@ -80,11 +80,11 @@ func (e *Enforcer) EnforceRules() (string, error) {
 		return "", ErrDryModeEnabled
 	}
 
-	if err := repo.SaveChanges(commitMessage, e.commitAuthor); err != nil {
+	if err := repo.SaveChanges(CommitMessage, e.commitAuthor); err != nil {
 		return "", fmt.Errorf("error when commit changes: %w", err)
 	}
 
-	e.log.Debugw("committed new file", "file", linterFileName)
+	e.log.Debugw("committed new file", "file", LinterFileName)
 
 	return repo.CurrentBranchName()
 }

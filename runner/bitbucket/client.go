@@ -1,12 +1,14 @@
 package bitbucket
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 
+	"github.com/SuddenGunter/go-linter-enforcer/enforcer"
 	"github.com/SuddenGunter/go-linter-enforcer/repository"
 )
 
@@ -19,6 +21,8 @@ type Client struct {
 
 func (c *Client) LoadReposList(ctx context.Context) ([]repository.Repository, error) {
 	result := make([]repository.Repository, 0, 100)
+
+	// todo: dry run support
 
 	canMakeRequests := true
 
@@ -46,15 +50,51 @@ func (c *Client) LoadReposList(ctx context.Context) ([]repository.Repository, er
 				})
 			}
 		}
-
-		page++
 	}
 
 	return result, nil
 }
 
-func (c *Client) CreatePR(ctx context.Context, r repository.Repository, name string) {
-	panic("not impl")
+type createPRRequest struct {
+	Title  string `json:"title"`
+	Source source `json:"source"`
+}
+
+type source struct {
+	Branch branch `json:"branch"`
+}
+
+type branch struct {
+	Name string `json:"name"`
+}
+
+type CreatePRResponse struct {
+	Links struct {
+		HTML linkWrapper `json:"html"`
+	} `json:"links"`
+}
+
+func (c *Client) CreatePR(
+	ctx context.Context,
+	repo repository.Repository,
+	branchName string) (CreatePRResponse, error) {
+	// todo: dry run support
+	url := fmt.Sprintf("%s/2.0/repositories/%s/%s/pullrequests", baseURL, c.Organization, repo.Name)
+	req := createPRRequest{
+		Title:  enforcer.CommitMessage,
+		Source: source{branch{Name: branchName}},
+	}
+
+	body, err := json.Marshal(&req)
+	if err != nil {
+		return CreatePRResponse{}, fmt.Errorf("failed to create PR: %w", err)
+	}
+
+	var expectedResponse CreatePRResponse
+
+	err = c.performRequest(ctx, url, http.MethodPost, bytes.NewBuffer(body), &expectedResponse)
+
+	return expectedResponse, err
 }
 
 func (c *Client) performRequest(
