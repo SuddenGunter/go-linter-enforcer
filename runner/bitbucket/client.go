@@ -23,6 +23,8 @@ type Client struct {
 func (c *Client) LoadReposList(ctx context.Context) ([]repository.Repository, error) {
 	result := make([]repository.Repository, 0, 100)
 
+	// todo: dry run support
+
 	canMakeRequests := true
 
 	for page := 1; canMakeRequests; page++ {
@@ -49,26 +51,10 @@ func (c *Client) LoadReposList(ctx context.Context) ([]repository.Repository, er
 				})
 			}
 		}
-
-		page++
 	}
 
 	return result, nil
 }
-
-/*
-curl -v https://api.bitbucket.org/2.0/repositories/my-username/my-repository/pullrequests \
-  -u my-username:my-password \
-  --request POST \
-  --header 'Content-Type: application/json' \
-  --data '{
-    "title": "My Title",
-    "source": {
-      "branch": {
-        "name": "staging"
-      }
-    }
-  }'*/
 
 type createPRRequest struct {
 	Title  string `json:"title"`
@@ -87,6 +73,8 @@ func (c *Client) CreatePR(
 	ctx context.Context,
 	repo repository.Repository,
 	branchName string) (map[string]interface{}, error) {
+
+	// todo: dry run support
 	url := fmt.Sprintf("%s/2.0/repositories/%s/%s/pullrequests", baseURL, c.Organization, repo.Name)
 	req := createPRRequest{
 		Title:  enforcer.CommitMessage,
