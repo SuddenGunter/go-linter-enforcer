@@ -53,7 +53,8 @@ func (c *Client) LoadReposList(ctx context.Context) ([]repository.Repository, er
 	return result, nil
 }
 
-func (c *Client) CreatePR(ctx context.Context, r repository.Repository, name string) {
+func (c *Client) CreatePR(ctx context.Context, repo repository.Repository, branchName string) {
+
 	panic("not impl")
 }
 
