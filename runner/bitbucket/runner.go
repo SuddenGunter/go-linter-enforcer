@@ -71,6 +71,6 @@ func (runner *Runner) Run(ctx context.Context) {
 			continue
 		}
 
-		runner.log.Debugw("create pr response", "resp", resp)
+		runner.log.With("repo", r.Name).Debugw("created PR", "link", resp.Links.HTML)
 	}
 }

@@ -78,7 +78,6 @@ func (c *Client) CreatePR(
 	ctx context.Context,
 	repo repository.Repository,
 	branchName string) (CreatePRResponse, error) {
-
 	// todo: dry run support
 	url := fmt.Sprintf("%s/2.0/repositories/%s/%s/pullrequests", baseURL, c.Organization, repo.Name)
 	req := createPRRequest{
