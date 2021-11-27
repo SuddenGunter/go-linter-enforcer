@@ -13,11 +13,7 @@ const (
 	CommitMessage  = "🤖 update " + LinterFileName + " according to latest changes"
 )
 
-var (
-	ErrNothingToCommit = errors.New("nothing to commit: expected state matches actual")
-	// todo: rename drymode -> dryrun
-	ErrDryModeEnabled = errors.New("nothing to commit: dryMode enabled")
-)
+var ErrNothingToCommit = errors.New("nothing to commit: expected state matches actual")
 
 type GitClientProvider interface {
 	OpenRepository(repo repository.Repository) (repository.GitClient, error)
@@ -29,7 +25,6 @@ type Enforcer struct {
 	log          *zap.SugaredLogger
 	expectedFile []byte
 	repo         repository.Repository
-	dryRun       bool
 }
 
 func NewEnforcer(
@@ -38,16 +33,13 @@ func NewEnforcer(
 
 	commitAuthor repository.Author,
 	repo repository.Repository,
-	expectedFile []byte,
-
-	dryRun bool) *Enforcer {
+	expectedFile []byte) *Enforcer {
 	return &Enforcer{
 		provider:     provider,
 		commitAuthor: commitAuthor,
 		log:          log.With("repo", repo.Name),
 		expectedFile: expectedFile,
 		repo:         repo,
-		dryRun:       dryRun,
 	}
 }
 
@@ -75,10 +67,6 @@ func (e *Enforcer) EnforceRules() (string, error) {
 	}
 
 	e.log.Debugw("replacing file")
-
-	if e.dryRun {
-		return "", ErrDryModeEnabled
-	}
 
 	if err := repo.SaveChanges(CommitMessage, e.commitAuthor); err != nil {
 		return "", fmt.Errorf("error when commit changes: %w", err)

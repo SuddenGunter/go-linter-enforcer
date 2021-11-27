@@ -2,7 +2,6 @@ package bitbucket
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/SuddenGunter/go-linter-enforcer/enforcer"
@@ -18,27 +17,27 @@ const (
 	allowedLang = "go"
 )
 
+type APIClient interface {
+	LoadReposList(ctx context.Context) ([]repository.Repository, error)
+	CreatePR(ctx context.Context, r repository.Repository, name string) (CreatePRResponse, error)
+}
+
 type Runner struct {
-	gcp          *git.ClientProvider
+	gcp    *git.ClientProvider
+	log    *zap.SugaredLogger
+	client APIClient
+
 	expectedFile []byte
-	log          *zap.SugaredLogger
-	cfg          Config
-	client       *Client
+	cfg          *Config
 }
 
 func NewRunner(
 	gcp *git.ClientProvider,
 	expectedFile []byte,
 	log *zap.SugaredLogger,
-	cfg Config) *Runner {
-	return &Runner{gcp: gcp, expectedFile: expectedFile, log: log, cfg: cfg, client: &Client{
-		Client: http.Client{
-			Timeout: 15 * time.Second,
-		},
-		Organization: cfg.Organization,
-		Login:        cfg.Login,
-		AppPassword:  cfg.AppPassword,
-	}}
+	client APIClient,
+	cfg *Config) *Runner {
+	return &Runner{gcp: gcp, expectedFile: expectedFile, log: log, client: client, cfg: cfg}
 }
 
 func (runner *Runner) Run(ctx context.Context) {
@@ -57,7 +56,7 @@ func (runner *Runner) Run(ctx context.Context) {
 		enf := enforcer.NewEnforcer(runner.gcp, runner.log, repository.Author{
 			Email: runner.cfg.Git.Email,
 			Name:  runner.cfg.Git.Username,
-		}, r, runner.expectedFile, false)
+		}, r, runner.expectedFile)
 
 		branchName, err := enf.EnforceRules()
 		if err != nil {
