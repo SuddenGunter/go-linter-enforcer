@@ -13,9 +13,7 @@ const (
 	CommitMessage  = "🤖 update " + LinterFileName + " according to latest changes"
 )
 
-var (
-	ErrNothingToCommit = errors.New("nothing to commit: expected state matches actual")
-)
+var ErrNothingToCommit = errors.New("nothing to commit: expected state matches actual")
 
 type GitClientProvider interface {
 	OpenRepository(repo repository.Repository) (repository.GitClient, error)

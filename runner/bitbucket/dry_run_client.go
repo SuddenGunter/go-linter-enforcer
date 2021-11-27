@@ -24,8 +24,15 @@ func (c *DryRunAPIClient) LoadReposList(ctx context.Context) ([]repository.Repos
 	return c.realAPIClient.LoadReposList(ctx)
 }
 
-func (c *DryRunAPIClient) CreatePR(ctx context.Context, r repository.Repository, name string) (CreatePRResponse, error) {
-	c.log.With("repository", r.Name).With("branch", name).Debugw("tried to create PR for branch with dry run enabled. No PR would be created.")
+func (c *DryRunAPIClient) CreatePR(
+	ctx context.Context,
+	r repository.Repository,
+	name string) (CreatePRResponse, error) {
+	c.log.
+		With("repository", r.Name).
+		With("branch", name).
+		Debugw("tried to create PR for branch with dry run enabled. No PR would be created.")
+
 	return CreatePRResponse{
 		Links: struct {
 			HTML linkWrapper `json:"html"`

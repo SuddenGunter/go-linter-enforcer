@@ -28,12 +28,12 @@ func (r RunnerBuilder) CreateRunner(log *zap.SugaredLogger, config interface{}) 
 
 	gcp := git.NewClientProvider(log, publicKeys)
 
-	apiClient := getApiClient(cfg, log)
+	apiClient := getAPIClient(cfg, log)
 
 	return NewRunner(gcp, readAll(cfg.ExpectedLinterConfig, log), log, apiClient, cfg)
 }
 
-func getApiClient(cfg *Config, log *zap.SugaredLogger) APIClient {
+func getAPIClient(cfg *Config, log *zap.SugaredLogger) APIClient {
 	client := &Client{
 		Client: http.Client{
 			Timeout: 15 * time.Second,
