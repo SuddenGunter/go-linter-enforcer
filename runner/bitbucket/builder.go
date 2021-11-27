@@ -2,7 +2,9 @@ package bitbucket
 
 import (
 	"io/ioutil"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 
@@ -26,7 +28,26 @@ func (r RunnerBuilder) CreateRunner(log *zap.SugaredLogger, config interface{}) 
 
 	gcp := git.NewClientProvider(log, publicKeys)
 
-	return NewRunner(gcp, readAll(cfg.ExpectedLinterConfig, log), log, *cfg)
+	apiClient := getApiClient(cfg, log)
+
+	return NewRunner(gcp, readAll(cfg.ExpectedLinterConfig, log), log, apiClient, cfg)
+}
+
+func getApiClient(cfg *Config, log *zap.SugaredLogger) APIClient {
+	client := &Client{
+		Client: http.Client{
+			Timeout: 15 * time.Second,
+		},
+		Organization: cfg.Organization,
+		Login:        cfg.Login,
+		AppPassword:  cfg.AppPassword,
+	}
+
+	if cfg.DryRun {
+		return UseDryRun(client, log)
+	}
+
+	return client
 }
 
 func (r RunnerBuilder) Config() interface{} {
